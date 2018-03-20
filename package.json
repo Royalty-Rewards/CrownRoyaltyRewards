@@ -60,6 +60,7 @@
   },
   "dependencies": {
     "dotenv": "^4.0.0",
-    "ethjs-abi": "^0.2.1"
+    "ethjs-abi": "^0.2.1",
+    "remixd": "^0.1.8-alpha.2"
   }
 }

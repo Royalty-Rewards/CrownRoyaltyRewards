@@ -163,15 +163,17 @@ function getTotalFundsReleased()
 
 }
 
-function createCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _initialRate, uint256 _finalRate, uint256 _cap)
+/* function createCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _initialRate, uint256 _finalRate, uint256 _cap)
 onlyOwner
 internal returns(CRWNRR_Crowdsale)
 {
+  //should ony be able to call this ONE time!
   mToken = new CRWNRR_Token();
-  return new CRWNRR_Crowdsale(_startTime, _endTime, _initialRate, _finalRate, _cap, mEscrowWallet, mToken);
+  mCrowdsale =  new CRWNRR_Crowdsale(_startTime, _endTime, _initialRate, _finalRate, _cap, mEscrowWallet, mToken);
+  mToken.transferOwnership(mCrowdsale.address);
 }
 
-/* function buyTokens(address shareholderTokenWallet)
+function buyTokens(address shareholderTokenWallet)
 nonReentrant
 external payable
 {
