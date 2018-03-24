@@ -1,16 +1,16 @@
 pragma solidity ^0.4.18;
 
-import "./crowdsale/validation/CappedCrowdsale.sol";
-import "./crowdsale/emission/MintedCrowdsale.sol";
-import "./crowdsale/price/IncreasingPriceCrowdsale.sol";
-import "./crowdsale/distribution/FinalizableCrowdsale.sol";
-import "./crowdsale/distribution/PostDeliveryCrowdsale.sol";
-import "./crowdsale/validation/WhitelistedCrowdsale.sol";
-import "./crowdsale/Crowdsale.sol";
-import "./CRWNRR_Token.sol";
-import './token/ERC20/MintableToken.sol';
+import "../crowdsale/validation/CappedCrowdsale.sol";
+import "../crowdsale/emission/MintedCrowdsale.sol";
+import "../crowdsale/price/IncreasingPriceCrowdsale.sol";
+import "../crowdsale/distribution/FinalizableCrowdsale.sol";
+import "../crowdsale/distribution/PostDeliveryCrowdsale.sol";
+import "../crowdsale/validation/WhitelistedCrowdsale.sol";
+import "../crowdsale/Crowdsale.sol";
+import "../token/ROUX_Token.sol";
+import '../token/ERC20/MintableToken.sol';
 
-contract CRWNRR_ReferralBasedCrowdsale is MintedCrowdsale, PostDeliveryCrowdsale, CappedCrowdsale, WhitelistedCrowdsale, IncreasingPriceCrowdsale
+contract ROUX_ReferralBasedCrowdsale is MintedCrowdsale, PostDeliveryCrowdsale, CappedCrowdsale, WhitelistedCrowdsale, IncreasingPriceCrowdsale
 {
     using SafeMath for uint256;
 
@@ -89,14 +89,14 @@ contract CRWNRR_ReferralBasedCrowdsale is MintedCrowdsale, PostDeliveryCrowdsale
      * @param _token Crowdsale closing time
     * @param _minimumPurchase minimum purchase
      */
-    function CRWNRR_ReferralBasedCrowdsale(
+    function ROUX_ReferralBasedCrowdsale(
     uint256 _openingTime,
     uint256 _closingTime,
     uint256 _initialRate,
     uint256 _finalRate,
     uint256 _cap,
     address _wallet,
-    CRWNRR_Token _token,
+    ROUX_Token _token,
     uint256 _minimumPurchase)
     public
     Crowdsale(_initialRate, _wallet, _token)
@@ -166,7 +166,7 @@ contract CRWNRR_ReferralBasedCrowdsale is MintedCrowdsale, PostDeliveryCrowdsale
           uint256 referralTokenAmount = numTokensIssued.mul(mBackers[referralSource].discount).div(oneHundred);
           //issue tokens to purchaser's reference account
           _deliverTokens(referralSource, referralTokenAmount);
-          //token.transfer(referralSource, referralTokenAmount);
+
           ReferralTokensIssued(referralSource, referralTokenAmount);
         }
       }
@@ -229,10 +229,8 @@ contract CRWNRR_ReferralBasedCrowdsale is MintedCrowdsale, PostDeliveryCrowdsale
      * @param _beneficiary Address to be added to the whitelist
      */
     function addToWhitelist(address _beneficiary) external onlyOwner {
-      if(mBackers[_beneficiary].isValid)
-      {
-        whitelist[_beneficiary] = true;
-      }
+      require(mBackers[_beneficiary].isValid);
+      whitelist[_beneficiary] = true;
     }
 
     /**

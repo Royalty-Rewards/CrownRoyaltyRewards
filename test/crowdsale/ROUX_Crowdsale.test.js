@@ -13,10 +13,10 @@ require('chai')
   .should();
 
 
-const CRWNRR_Crowdsale = artifacts.require('CRWNRR_Crowdsale');
-const CRWNRR_Token = artifacts.require('CRWNRR_Token');
+const ROUX_Crowdsale = artifacts.require('ROUX_Crowdsale');
+const ROUX_Token = artifacts.require('ROUX_Token');
 
-contract('CRWNRR_Crowdsale', function  ([_, owner, investor, wallet, purchaser, thirdparty]) {
+contract('ROUX_Crowdsale', function  ([_, owner, investor, wallet, purchaser, thirdparty]) {
   const cap = ether(8888);
   const lessThanCap = ether(60);
   const value = ether(60);
@@ -39,8 +39,8 @@ contract('CRWNRR_Crowdsale', function  ([_, owner, investor, wallet, purchaser, 
       this.closingTime = this.openingTime + duration.weeks(1);
       this.beforeEndTime = this.closingTime - duration.hours(1);
       this.afterClosingTime = this.closingTime + duration.hours(1);
-      this.token = await CRWNRR_Token.new();
-      this.crowdsale = await CRWNRR_Crowdsale.new(this.openingTime, this.closingTime, initialRate, finalRate, cap, wallet, this.token.address, {from: owner});
+      this.token = await ROUX_Token.new();
+      this.crowdsale = await ROUX_Crowdsale.new(this.openingTime, this.closingTime, initialRate, finalRate, cap, wallet, this.token.address, {from: owner});
       await this.token.transferOwnership(this.crowdsale.address);
     });
 
@@ -100,26 +100,4 @@ contract('CRWNRR_Crowdsale', function  ([_, owner, investor, wallet, purchaser, 
         await this.crowdsale.send(cap.plus(1)).should.be.rejectedWith(EVMRevert);
       });
     });
-
-    // describe('ending', function () {
-    //   it('should not reach cap if sent under cap', async function () {
-    //     let capReached = await this.crowdsale.capReached();
-    //     capReached.should.equal(false);
-    //     await this.crowdsale.send(lessThanCap);
-    //     capReached = await this.crowdsale.capReached();
-    //     capReached.should.equal(false);
-    //   });
-    //
-    //   it('should not reach cap if sent just under cap', async function () {
-    //     await this.crowdsale.send(cap.minus(1));
-    //     let capReached = await this.crowdsale.capReached();
-    //     capReached.should.equal(false);
-    //   });
-    //
-    //   it('should reach cap if cap sent', async function () {
-    //     await this.crowdsale.send(cap);
-    //     let capReached = await this.crowdsale.capReached();
-    //     capReached.should.equal(true);
-    //   });
-    // });
 });
