@@ -30,6 +30,10 @@ contract('ROUX_ReferralBasedCrowdsale', function  ([_, owner, investor, referral
   const rateAtTime150000 = new BigNumber(8257);
   const rateAtTime450000 = new BigNumber(6439);
   const minimumPurchase = ether(1);
+  const threePercentRefferalReward = 3;
+  const twntyPercentDiscount = 20;
+  const onePercentReferralReward = 1;
+  const fivePercentDiscount = 5;
     before(async function () {
       // Advance to the next block to correctly read time in the solidity "now" function interpreted by testrpc
       await advanceBlock();
@@ -59,20 +63,42 @@ contract('ROUX_ReferralBasedCrowdsale', function  ([_, owner, investor, referral
 
     it('should add a referral source account to whitelist', async function () {
       await increaseTimeTo(this.openingTime);
-      await this.crowdsale.addReferralAccount(investor,  20, 3, { from: owner });
+      await this.crowdsale.addReferralAccount(
+        investor,
+        twntyPercentDiscount,
+        threePercentRefferalReward,
+        { from: owner });
       await this.crowdsale.addToWhitelist(investor, { from: owner });
     });
 
     it('should add referred account to whitelist', async function () {
+      const percentReferralReward = 3;
+      const percentDiscount = 20;
       await increaseTimeTo(this.openingTime);
-      await this.crowdsale.addReferralAccount(authorized, 20, 3, { from: owner });
-      await this.crowdsale.addReferredAccount(unauthorized, authorized, { from: owner });
+      await this.crowdsale.addReferralAccount(
+        authorized,
+        twntyPercentDiscount,
+        threePercentRefferalReward,
+        { from: owner });
+      await this.crowdsale.addReferredAccount(
+        unauthorized,
+        authorized,
+        { from: owner });
     });
 
     it('should not add non-referred account to whitelist', async function () {
+      const percentReferralReward = 3;
+      const percentDiscount = 20;
       await increaseTimeTo(this.openingTime);
-      await this.crowdsale.addReferralAccount(authorized, 20, 3, { from: owner });
-      await this.crowdsale.addReferredAccount(unauthorized, investor, { from: owner }).should.be.rejectedWith(EVMRevert);;
+      await this.crowdsale.addReferralAccount(
+        authorized,
+        twntyPercentDiscount,
+        threePercentRefferalReward,
+        { from: owner });
+      await this.crowdsale.addReferredAccount(
+        unauthorized,
+        investor,
+        { from: owner }).should.be.rejectedWith(EVMRevert);;
     });
 
     it('should not add accounts to whitelist unless they are already listed as referrals or reffered', async function () {
@@ -90,8 +116,16 @@ contract('ROUX_ReferralBasedCrowdsale', function  ([_, owner, investor, referral
           let referralSourceTokenWallet = wallet1.address;
           let wallet2 = await SimpleSavingsWallet.new({from: purchaser});
           let purchaserTokenWallet = wallet2.address;
-          await this.crowdsale.addReferralAccount(referralSource, 20, 3, { from: owner });
-          await this.crowdsale.addReferralAccount(purchaser, 5, 1, { from: owner });
+          await this.crowdsale.addReferralAccount(
+            referralSource,
+            twntyPercentDiscount,
+            threePercentRefferalReward,
+            { from: owner });
+          await this.crowdsale.addReferralAccount(
+            purchaser,
+            fivePercentDiscount,
+            onePercentReferralReward,
+            { from: owner });
           let res = await this.crowdsale.buyTokens(referralSource, { value: ether(1), from: referralSource });
           let res2 = await this.crowdsale.buyTokens(purchaser, { value: ether(100), from: purchaser });
           await increaseTimeTo(this.afterClosingTime);
@@ -99,19 +133,27 @@ contract('ROUX_ReferralBasedCrowdsale', function  ([_, owner, investor, referral
           await this.crowdsale.withdrawTokens({ from: referralSource });
           let balance = await this.token.balanceOf(referralSource);
           let balance2 = await this.token.balanceOf(purchaser);
-          console.log("20% Discount Balance = " +  web3.fromWei(balance.toNumber(), "ether"));
-          console.log("5% Discount Balance = " +  web3.fromWei(balance2.toNumber(), "ether"));
           await this.paymentSplitter.claim({from: owner1});
           await this.paymentSplitter.claim({from: owner2});
-          console.log("75% OWNER BALANCE = " + (web3.fromWei(web3.eth.getBalance(owner1), "ether") - 1000000));
-          console.log("25% OWNER BALANCE = " + ( web3.fromWei(web3.eth.getBalance(owner2), "ether") - 1000000));
+          //TODO: NEED TO ADD SOME ACTUAL ASSERT STATEMENTS HERE!
+          // console.log("20% Discount Balance = " +  web3.fromWei(balance.toNumber(), "ether"));
+          // console.log("5% Discount Balance = " +  web3.fromWei(balance2.toNumber(), "ether"));
+          // console.log("75% OWNER BALANCE = " + (web3.fromWei(web3.eth.getBalance(owner1), "ether") - 1000000));
+          // console.log("25% OWNER BALANCE = " + ( web3.fromWei(web3.eth.getBalance(owner2), "ether") - 1000000));
         });
 
         it('should allow referred account to purchase tokens, then issue token fee to referral source', async function () {
           let purchaseAmount = ether(2);
           await increaseTimeTo(this.openingTime);
-          await this.crowdsale.addReferralAccount(investor, 20, 3, { from: owner });
-          await this.crowdsale.addReferredAccount(referredAccount, investor, { from: owner });
+          await this.crowdsale.addReferralAccount(
+            investor,
+            twntyPercentDiscount,
+            threePercentRefferalReward,
+            { from: owner });
+          await this.crowdsale.addReferredAccount(
+            referredAccount,
+            investor,
+            { from: owner });
           let res = await this.crowdsale.buyTokens(investor, { value: ether(1), from: owner });
           let res2 = await this.crowdsale.buyTokens(referredAccount, { value: ether(100), from: owner });
           await increaseTimeTo(this.afterClosingTime);
@@ -119,12 +161,13 @@ contract('ROUX_ReferralBasedCrowdsale', function  ([_, owner, investor, referral
           await this.crowdsale.withdrawTokens({ from: investor });
           let balance = await this.token.balanceOf(investor);
           let balance2 = await this.token.balanceOf(referredAccount);
-          console.log("Referral Source BALANCE = " + web3.fromWei(balance.toNumber(), "ether"));
-          console.log("Referred Account Balance BALANCE = " + web3.fromWei(balance2.toNumber(), "ether"));
           await this.paymentSplitter.claim({from: owner1});
           await this.paymentSplitter.claim({from: owner2});
-          console.log("75% OWNER BALANCE = " + (web3.fromWei(web3.eth.getBalance(owner1), "ether") - 1000000));
-          console.log("25% OWNER BALANCE = " +  (web3.fromWei(web3.eth.getBalance(owner2), "ether") - 1000000));
+          //TODO: NEED TO ADD SOME ACTUAL ASSERT STATEMENTS HERE!
+          // console.log("Referral Source BALANCE = " + web3.fromWei(balance.toNumber(), "ether"));
+          // console.log("Referred Account Balance BALANCE = " + web3.fromWei(balance2.toNumber(), "ether"));
+          // console.log("75% OWNER BALANCE = " + (web3.fromWei(web3.eth.getBalance(owner1), "ether") - 1000000));
+          // console.log("25% OWNER BALANCE = " +  (web3.fromWei(web3.eth.getBalance(owner2), "ether") - 1000000));
         });
 
       });
